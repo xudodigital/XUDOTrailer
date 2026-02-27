@@ -42,23 +42,9 @@
     </div>
 
     <div id="global-footer-placeholder"></div>
-    
-    <script>
-        (function() {
-            var script = document.createElement('script');
-            // Check for Localhost environment
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log('🔧 Dev Mode: Loading LOCAL Footer');
-                // PERBAIKAN: Menghapus '../' karena browse.html ada di root
-                script.src = "js/global-footer.js"; 
-            } else {
-                // Production: Load from the King Domain
-                script.src = "https://domain-anda.com/js/global-footer.js";
-            }
-            document.body.appendChild(script);
-        })();
-    </script>
+    <script src="/js/global-footer.js"></script>
 
     <script src="js/main.js"></script>
 </body>
+
 </html>
