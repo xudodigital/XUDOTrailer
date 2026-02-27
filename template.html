@@ -116,28 +116,7 @@
     </div>
 
     <div id="global-footer-placeholder"></div>
-
-    <script>
-        (function() {
-            // Read the Authority from the injected config, or fallback to current domain
-            const KING_DOMAIN = window.XUDO_CONFIG ? window.XUDO_CONFIG.authority : window.location.hostname;
-            const KING_URL = 'https://' + KING_DOMAIN;
-            
-            var script = document.createElement('script');
-            var hostname = window.location.hostname;
-
-            // Logic: If I am the King (or Localhost), load local. If I am Satellite, load from King.
-            if (['localhost', '127.0.0.1'].includes(hostname) || hostname === KING_DOMAIN) {
-                // Check path depth to determine relative path (../js/ vs js/)
-                script.src = (window.location.pathname.split('/').length > 2 ? "../" : "") + "js/global-footer.js";
-            } else {
-                // Load cross-domain from King
-                script.src = KING_URL + "/js/global-footer.js";
-            }
-            
-            document.body.appendChild(script);
-        })();
-    </script>
+    <script src="/js/global-footer.js"></script>
 
     <script src="../js/main.js"></script>
     <script>
@@ -163,4 +142,5 @@
         });
     </script>
 </body>
+
 </html>
