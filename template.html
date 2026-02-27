@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{ANALYTICS}}
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} - {{AUTHORITY_DOMAIN}}</title>
+    
+    <meta name="description" content="{{SEO_DESCRIPTION}}">
+    <meta property="og:title" content="Watch {{TITLE}}">
+    <meta property="og:image" content="https://image.tmdb.org/t/p/w500{{POSTER_PATH}}">
+    <meta property="og:url" content="{{CANONICAL}}">
+
+    <link rel="canonical" href="{{CANONICAL}}">
+
+    <script type="application/ld+json">
+        {{SCHEMA}}
+    </script>
+    
+    <script>
+        window.XUDO_CONFIG = {
+            authority: "{{AUTHORITY_DOMAIN}}",
+            isGenerated: true,
+            apiKey: "{{API_KEY}}"
+        };
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css"> 
+    <link rel="icon" href="../icon.svg" type="image/svg+xml">
+</head>
+<body>
+    <header class="movie-header">
+        <a href="../index.html" class="logo" aria-label="XUDOTrailer Home">XUDO<span>TRAILER</span></a>
+        
+        <nav class="nav-links" id="nav-menu">
+            <div class="search-wrapper">
+                <input type="text" id="search-input" class="search-input" placeholder="Search..." onkeypress="handleEnter(event)" oninput="toggleClearButton()">
+                <button id="clear-btn" class="search-clear" onclick="clearSearch()">✕</button>
+                <button class="search-btn" onclick="executeSearch()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </div>
+
+            <a href="../browse.html?type=favorites" class="header-fav-btn" aria-label="My Favorites">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </a>
+        </nav>
+    </header>
+
+    <div class="player-wrapper" id="static-player">
+        <iframe 
+            src="https://www.youtube.com/embed/{{VIDEO_KEY}}?autoplay=1&mute=1&controls=1&loop=1&playlist={{VIDEO_KEY}}&rel=0" 
+            class="player-frame" 
+            allowfullscreen 
+            style="border:0; width:100%; height:100%; display: {{DISPLAY_PLAYER}};">
+        </iframe>
+        
+        <div style="display: {{DISPLAY_BACKDROP}}; width:100%; height:100%; background: url('https://image.tmdb.org/t/p/w500{{POSTER_PATH}}') center/cover;">
+            <div style="display:grid; place-items:center; height:100%; background:rgba(0,0,0,0.6);">
+                <h3 style="color:#fff; background:#000; padding:10px 20px; border-radius:8px;">Trailer Unavailable</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="watch-container">
+        <div class="movie-info">
+            <div class="poster-container">
+                <img src="https://image.tmdb.org/t/p/w500{{POSTER_PATH}}" alt="{{POSTER_ALT}}" title="{{POSTER_ALT}}">
+            </div>
+            <div class="details-container">
+                <h1>{{TITLE}}</h1>
+                <div class="metadata">
+                    <span class="rating">⭐ {{RATING}}</span>
+                    <span class="year">{{YEAR}}</span>
+                    <span class="quality">{{CERTIFICATION}}</span>
+                    <span class="quality">{{RUNTIME}}</span>
+                    <span class="quality">HD</span>
+                </div>
+
+                <div class="genres" style="margin-bottom: 20px;">
+                    {{GENRES}}
+                </div>
+                
+                <p class="overview">{{OVERVIEW}}</p>
+                
+                <div id="action-group" style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="share-btn" onclick="window.shareMovie()" style="background: #222; border: 1px solid #444; color: #fff; padding: 12px 30px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; transition: 0.3s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        Share
+                    </button>
+
+                    <a href="https://xudomovie.us/{{FOLDER}}/{{SLUG}}.html" target="_blank" rel="dofollow" class="watch-now-btn" aria-label="Watch full movie on XUDOMovie">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                        Watch Full
+                    </a>
+                </div>
+
+                <div class="cast-section" style="margin-top: 30px;">
+                    <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 15px;">Top Cast</h3>
+                    <div class="cast-list">
+                        {{CAST_LIST}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="global-footer-placeholder"></div>
+
+    <script>
+        (function() {
+            // Read the Authority from the injected config, or fallback to current domain
+            const KING_DOMAIN = window.XUDO_CONFIG ? window.XUDO_CONFIG.authority : window.location.hostname;
+            const KING_URL = 'https://' + KING_DOMAIN;
+            
+            var script = document.createElement('script');
+            var hostname = window.location.hostname;
+
+            // Logic: If I am the King (or Localhost), load local. If I am Satellite, load from King.
+            if (['localhost', '127.0.0.1'].includes(hostname) || hostname === KING_DOMAIN) {
+                // Check path depth to determine relative path (../js/ vs js/)
+                script.src = (window.location.pathname.split('/').length > 2 ? "../" : "") + "js/global-footer.js";
+            } else {
+                // Load cross-domain from King
+                script.src = KING_URL + "/js/global-footer.js";
+            }
+            
+            document.body.appendChild(script);
+        })();
+    </script>
+
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // A. Search Override (Redirect search path to ../index.html from inside subfolder)
+            window.executeSearch = function() {
+                const q = document.getElementById('search-input').value.trim();
+                // We use static 'en-US' since Language Selector is removed
+                if(q) window.location.href = `../index.html?search=${encodeURIComponent(q)}&lang=en-US`;
+            };
+
+            // B. Execute Save History (LocalStorage)
+            if (typeof window.saveHistory === 'function') {
+                window.saveHistory(
+                    {{ID}},                   
+                    '{{MEDIA_TYPE}}',         
+                    '{{SAFE_TITLE}}',         
+                    'https://image.tmdb.org/t/p/w500{{POSTER_PATH}}', 
+                    '{{YEAR}}',               
+                    '{{RATING}}'
+                );
+            }
+        });
+    </script>
+</body>
+</html>
