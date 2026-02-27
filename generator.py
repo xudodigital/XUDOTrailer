@@ -387,7 +387,15 @@ def process_targets(all_content):
 
                 with open(output_path, 'w', encoding='utf-8') as f: f.write(html_content)
                 new_files_count += 1
-                if is_king: ping_new_content(title, page_url)
+                if is_king: 
+                    ping_new_content(title, page_url)
+                    
+                    # [EN] Append the newly generated URL to new_urls.txt for Google Indexing
+                    try:
+                        with open("new_urls.txt", "a", encoding="utf-8") as url_file:
+                            url_file.write(canonical_url + "\n")
+                    except Exception as e:
+                        print(f"  ⚠️ [Warning] Failed to write to new_urls.txt: {e}")
                     
             except Exception as e: 
                 print(f"    ❌ [Error] Failed to process detail for {title} (ID: {item.get('id')}): {e}")
@@ -407,3 +415,4 @@ if __name__ == "__main__":
     else: print("❌ No data fetched. Aborting.")
 
     print(f"\n🎉 All tasks completed in {round(time.time() - start_time, 2)} seconds.")
+
