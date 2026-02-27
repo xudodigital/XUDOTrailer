@@ -11,11 +11,11 @@ TOTAL_PAGES = 1  # Fetch more content
 # [MULTI-CLUSTER CONFIGURATION]
 TARGETS = [
     # --- CLUSTER 1: BRAND ---
-    {"domain": "https://domain_anda.com",       "path": "./public_html",      "authority_url": "http://localhost"},
+    {"domain": "https://xudotrailer.us",       "path": "./public_html",      "authority_url": "https://xudotrailer.us"},
 ]
 
 GA_MAPPING = {
-    "https://domain_anda.com":          "G-XXXXXXXXXX",
+    "https://xudotrailer.us":          "G-34E9TJGR5H",
 }
 
 # Database buffer
@@ -405,4 +405,5 @@ if __name__ == "__main__":
     content_data = fetch_content_from_tmdb()
     if content_data: process_targets(content_data)
     else: print("❌ No data fetched. Aborting.")
+
     print(f"\n🎉 All tasks completed in {round(time.time() - start_time, 2)} seconds.")
