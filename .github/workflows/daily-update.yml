@@ -1,0 +1,46 @@
+name: Daily TMDB Auto Update
+
+# When does this robot run?
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs automatically every day at 00:00 UTC (7:00 AM WIB)
+  workflow_dispatch: # Button to trigger the workflow manually at any time
+
+jobs:
+  update-movies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository files
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🚀 1. Run XUDOTrailer Generator Factory
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          python generator.py
+
+      - name: ⚡ 2. Run Google Instant Indexing
+        env:
+          GOOGLE_INDEXING_JSON: ${{ secrets.GOOGLE_INDEXING_JSON }}
+        run: |
+          python indexer.py
+
+      - name: 💾 3. Save and Upload Results (Commit & Push)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update & Indexing Google" && git push)
