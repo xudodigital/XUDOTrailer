@@ -748,6 +748,45 @@ async function fetchMovieDetails(type, id) {
         if (g && d.genres) g.innerHTML = d.genres.map(x => `<span class="genre-tag">${sanitizeHTML(x.name)}</span>`).join('');
 
         // =====================================================================
+        // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (SMART DEEP-LINKING)
+        // WITH HISTORY TRANSFER TO XUDOMOVIE
+        // =====================================================================
+        const watchFullBtn = document.getElementById('watch-full-btn');
+        if (watchFullBtn) {
+            // 1. Cek dulu di search_index.json apakah file statis sudah ada
+            const localFile = LOCAL_SEARCH_INDEX.find(x => x.id == id && x.type == type);
+            
+            // 2. Siapkan data history untuk transfer ke XUDOMovie
+            const historyData = {
+                id: id,
+                type: type,
+                title: title,
+                poster: d.poster_path ? IMG_POSTER + d.poster_path : 'https://via.placeholder.com/500',
+                year: year,
+                rating: d.vote_average ? d.vote_average.toFixed(1) : '0'
+            };
+            
+            // 3. Encode history data untuk URL
+            const encodedHistory = encodeURIComponent(JSON.stringify(historyData));
+            
+            if (localFile) {
+                // [SKENARIO 1] File statis SUDAH dibuat
+                watchFullBtn.href = `https://xudomovie.us/${localFile.folder}/${localFile.slug}.html?h=${encodedHistory}`;
+            } else {
+                // [SKENARIO 2] File statis BELUM dibuat
+                watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}&h=${encodedHistory}`;
+            }
+            
+            // 4. Set target to _blank for a better user experience
+            watchFullBtn.target = "_blank";
+        }
+
+    } catch (error) { 
+        console.error("[EN] Fetch Movie Details Error:", error); 
+    }
+}
+
+        // =====================================================================
 // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (SMART DEEP-LINKING)
 // WITH HISTORY TRANSFER TO XUDOMOVIE
 // =====================================================================
@@ -826,3 +865,4 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (document.getElementById('browse-grid')) initBrowse();
     else if (document.getElementById('player-container')) initWatchPage();
 });
+
