@@ -752,30 +752,25 @@ async function fetchMovieDetails(type, id) {
         // =====================================================================
         const watchFullBtn = document.getElementById('watch-full-btn');
         if (watchFullBtn) {
-            // 1. Determine the folder based on media type (movie or tv)
-            const folder = (type === 'movie') ? 'movies' : 'tvshows';
+            // 1. Cek dulu di search_index.json apakah file statis sudah ada
+            const localFile = LOCAL_SEARCH_INDEX.find(x => x.id == id && x.type == type);
             
-            // 2. Create a URL-friendly slug and handle potential empty title
-            const slugText = titleClean ? titleClean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
-            
-            // 3. Logic: If year and slug are available, go to Static URL. Otherwise, go to Dynamic URL.
-            if (slugText && year && year !== '----') {
-                // Use SEO-friendly Static Folder URL
-                const finalSlug = `${slugText}-${year}`;
-                watchFullBtn.href = `https://xudomovie.us/${folder}/${finalSlug}.html`;
+            if (localFile) {
+                // [SKENARIO 1] File statis SUDAH dibuat -> arahkan ke folder movies/tvshows
+                watchFullBtn.href = `https://xudomovie.us/${localFile.folder}/${localFile.slug}.html`;
             } else {
-                // Fallback to Dynamic Watch URL if metadata is incomplete
+                // [SKENARIO 2] File statis BELUM dibuat -> arahkan ke watch.html (dynamic)
                 watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}`;
             }
             
-            // 4. Set target to _blank for a better user experience
+            // 2. Set target to _blank for a better user experience
             watchFullBtn.target = "_blank";
         }
 
-    } catch (error) { 
-        console.error("[EN] Fetch Movie Details Error:", error); 
-    }
-}
+            } catch (error) { 
+                console.error("[EN] Fetch Movie Details Error:", error); 
+            }
+        }
 
 /**
  * [EN] Fetches cast list and creates horizontal scrolling profile cards.
