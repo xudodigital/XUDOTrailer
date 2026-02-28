@@ -752,7 +752,21 @@ async function fetchMovieDetails(type, id) {
         // =====================================================================
         const watchFullBtn = document.getElementById('watch-full-btn');
         if (watchFullBtn) {
-            watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}`;
+            // 1. Determine the folder based on media type (movie or tv)
+            const folder = (type === 'movie') ? 'movies' : 'tvshows';
+            
+            // 2. Create a URL-friendly slug by removing non-alphanumeric characters
+            const slugText = titleClean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const safeSlug = slugText || `untitled-${id}`;
+            
+            // 3. Combine slug with the release year (matching Python generator logic)
+            const finalSlug = `${safeSlug}-${year}`;
+            
+            // 4. Inject the final deep-link URL into the button's href attribute
+            watchFullBtn.href = `https://xudomovie.us/${folder}/${finalSlug}.html`;
+            
+            // 5. Set target to _blank to ensure the link opens in a new browser tab
+            watchFullBtn.target = "_blank";
         }
 
     } catch (error) { 
