@@ -326,11 +326,11 @@ def process_targets(all_content):
                 
                 # [EN] Dynamic Call-To-Action (CTA) directing users to the streaming site
                 cta_variations = [
-                    f"Ready to watch? Stream <strong>{title}</strong> now on <a href='https://xudomovie.us' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Want to see the full feature? Watch <strong>{title}</strong> in high quality over at <a href='https://xudomovie.us' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Don't just read about it—experience it! Catch <strong>{title}</strong> online at <a href='https://xudomovie.us' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Grab your popcorn and head over to <a href='https://xudomovie.us' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a> to enjoy <strong>{title}</strong> today.",
-                    f"Looking for the full episode or movie? Start streaming <strong>{title}</strong> directly on <a href='https://xudomovie.us' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>."
+                    f"Ready to watch? Stream <strong>{title}</strong> now on <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Want to see the full feature? Watch <strong>{title}</strong> in high quality over at <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Don't just read about it—experience it! Catch <strong>{title}</strong> online at <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Grab your popcorn and head over to <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a> to enjoy <strong>{title}</strong> today.",
+                    f"Looking for the full episode or movie? Start streaming <strong>{title}</strong> directly on <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>."
                 ]
                 
                 # [EN] Combining SEO Spintax with CTA Spintax
