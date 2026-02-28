@@ -105,23 +105,19 @@ function initContentProtection() {
 }
 
 /* --- SMART ROUTING SYSTEM --- */
-
-/**
- * [EN] Lazy loads the local JSON search index to save bandwidth on initial page load.
- */
 async function loadSearchIndex() {
     if (isSearchIndexLoaded) return;
     try {
-        const res = await fetch('search_index.json');
+        const timestamp = new Date().getTime();
+        const res = await fetch(`search_index.json?v=${timestamp}`);
+        
         if (res.ok) LOCAL_SEARCH_INDEX = await res.json();
         else {
-            const res2 = await fetch('../search_index.json');
+            const res2 = await fetch(`../search_index.json?v=${timestamp}`);
             if(res2.ok) LOCAL_SEARCH_INDEX = await res2.json();
         }
         isSearchIndexLoaded = true;
-    } catch (error) {
-        console.warn("[EN] Smart Routing: Index not found, falling back to dynamic mode.", error);
-    }
+    } catch (error) {}
 }
 
 /**
