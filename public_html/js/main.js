@@ -1,10 +1,9 @@
 /**
- * XUDOMOVIE MAIN SCRIPT (HYBRID ENGINE)
- * - Removed: Multi-language (English only for Speed & SEO)
- * - Retained: XUDOTrailer's SEO, Smart Routing, & Security
- * - Injected: XUDOMovie v1's 4-Server Streaming & TV Episode Engine
- * - Fixed: Duplicate code removed
- * - Added: History transfer from XUDOTrailer
+ * XUDOTrailer MAIN SCRIPT (OPTIMIZED & SECURED)
+ * - Includes Lazy Loading for Search Index
+ * - Fixes Canonical Logic for Satellites
+ * - XSS Protection (Sanitization)
+ * - Explicit Error Handling
  */
 
 /* --- DYNAMIC CLUSTER CONFIGURATION --- */
@@ -13,7 +12,14 @@ const CONFIG = {
     AUTHORITY_DOMAIN: INJECTED.authority || window.location.hostname, 
     get AUTHORITY_URL() { return 'https://' + this.AUTHORITY_DOMAIN; },
     IS_LOCALHOST: ['localhost', '127.0.0.1'].includes(window.location.hostname),
+    /**
+     * [EN] Checks if the current domain is the master authority domain.
+     * @returns {boolean}
+     */
     isAuthority: function() { return window.location.hostname === this.AUTHORITY_DOMAIN; },
+    /**
+     * [EN] Uses injected API Key from generator or falls back to default for local dev.
+     */
     API_KEY: INJECTED.apiKey || '9d3fd8464dbd695f9457240aeea19851'
 };
 
@@ -26,8 +32,8 @@ const IMG_THUMB = 'https://image.tmdb.org/t/p/w92';
 const CURRENT_LANG = 'en-US';
 
 const TEXTS = {
-    allGenres: "All Genres", contWatch: "Continue Watching", clearHistory: "Clear All", loadMore: "Load More",
-    heroBtn: "PLAY NOW", trending: "TRENDING", viewMore: "View More", confirmClear: "Are you sure you want to clear history?",
+    allGenres: "All Genres", contWatch: "Recently Viewed", clearHistory: "Clear All", loadMore: "Load More",
+    heroBtn: "WATCH TRAILER", trending: "TRENDING", viewMore: "View More", confirmClear: "Are you sure?",
     movPopular: "Popular Movies", movNowPlaying: "Now Playing", movUpcoming: "Upcoming", movTopRated: "Top Rated Movies",
     tvPopular: "Popular TV Shows", tvAiringToday: "Airing Today", tvOnAir: "On TV", tvTopRated: "Top Rated TV Shows",
     season: "Season"
@@ -39,29 +45,45 @@ let currentBrowseEndpoint = '', currentMediaType = 'movie', currentGenreId = nul
 let LOCAL_SEARCH_INDEX = []; 
 let isSearchIndexLoaded = false;
 
-// PLAYER SERVER CONFIG
-let currentServer = 'vidlink';
-const SERVER_LIST = [
-    { id: 'vidlink', name: '1' },
-    { id: 'vidsrc', name: '2' },
-    { id: 'autoembed', name: '3' },
-    { id: '2embed', name: '4' }
-];
-
 /* --- SECURITY & HELPERS --- */
+
+/**
+ * [EN] Sanitizes strings to prevent Cross-Site Scripting (XSS) when injecting HTML.
+ * @param {string} str - The raw string.
+ * @returns {string} Sanitized string safe for DOM insertion.
+ */
 function sanitizeHTML(str) {
     if (!str) return '';
-    return str.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return str.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
+/**
+ * [EN] Sets or updates the canonical link tag for SEO, forcing credit to Authority Domain.
+ */
 function updateCanonical() {
     let link = document.querySelector("link[rel='canonical']") || document.createElement('link');
     link.rel = 'canonical';
+
+    const staticCanonical = document.querySelector("link[rel='canonical']");
+    if (staticCanonical && !CONFIG.IS_LOCALHOST && staticCanonical.href.includes(CONFIG.AUTHORITY_DOMAIN)) return;
+
     const relativePath = window.location.pathname + window.location.search;
-    link.href = CONFIG.IS_LOCALHOST ? window.location.href : CONFIG.AUTHORITY_URL + relativePath;
+    if (CONFIG.IS_LOCALHOST) {
+        link.href = window.location.href;
+    } else {
+        link.href = CONFIG.AUTHORITY_URL + relativePath;
+    }
     if (!link.parentNode) document.head.appendChild(link);
 }
 
+/**
+ * [EN] Updates the document title and meta description dynamically.
+ */
 function updateSEOMeta(t, d) {
     document.title = sanitizeHTML(t);
     let m = document.querySelector('meta[name="description"]') || document.createElement('meta');
@@ -69,6 +91,9 @@ function updateSEOMeta(t, d) {
     if (!m.parentNode) document.head.appendChild(m);
 }
 
+/**
+ * [EN] Initializes basic content protection (disables right-click, dev tools shortcuts).
+ */
 function initContentProtection() {
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('dragstart', e => e.preventDefault());
@@ -80,6 +105,10 @@ function initContentProtection() {
 }
 
 /* --- SMART ROUTING SYSTEM --- */
+
+/**
+ * [EN] Lazy loads the local JSON search index to save bandwidth on initial page load.
+ */
 async function loadSearchIndex() {
     if (isSearchIndexLoaded) return;
     try {
@@ -90,9 +119,14 @@ async function loadSearchIndex() {
             if(res2.ok) LOCAL_SEARCH_INDEX = await res2.json();
         }
         isSearchIndexLoaded = true;
-    } catch (error) {}
+    } catch (error) {
+        console.warn("[EN] Smart Routing: Index not found, falling back to dynamic mode.", error);
+    }
 }
 
+/**
+ * [EN] Determines whether to redirect to a generated static page or a dynamic watch page.
+ */
 function getTargetUrl(item) {
     const type = item.media_type || (item.title ? 'movie' : 'tv');
     const localFile = LOCAL_SEARCH_INDEX.find(x => x.id == item.id && x.type == type);
@@ -100,6 +134,10 @@ function getTargetUrl(item) {
 }
 
 /* --- SEARCH SYSTEM --- */
+
+/**
+ * [EN] Initializes DOM events related to the search input.
+ */
 function initSearchEvents() {
     const input = document.getElementById('search-input');
     if (!input) return;
@@ -124,11 +162,17 @@ function initSearchEvents() {
     });
 }
 
+/**
+ * [EN] Defines a global function for the inline HTML oninput event (if used).
+ */
 window.toggleClearButton = function() {
     const input = document.getElementById('search-input');
     document.getElementById('clear-btn').classList.toggle('show-flex', input.value.trim().length > 0);
 };
 
+/**
+ * [EN] Fetches live search suggestions from TMDB API as the user types.
+ */
 async function fetchLiveSearch(query) {
     const dropdown = document.getElementById('search-dropdown');
     if (!isSearchIndexLoaded) await loadSearchIndex();
@@ -143,6 +187,8 @@ async function fetchLiveSearch(query) {
                 const title = sanitizeHTML(i.title || i.name);
                 const year = sanitizeHTML((i.release_date || i.first_air_date || '').split('-')[0] || 'N/A');
                 const poster = i.poster_path ? IMG_THUMB + i.poster_path : 'https://via.placeholder.com/40x60?text=NA';
+                
+                // Safe for inline JS handler injection
                 const safeTitle = title.replace(/'/g, "\\'");
                 const safePoster = (i.poster_path ? IMG_POSTER + i.poster_path : poster).replace(/'/g, "\\'");
                 const rating = i.vote_average ? i.vote_average.toFixed(1) : 'NR';
@@ -151,31 +197,83 @@ async function fetchLiveSearch(query) {
                 
                 const svgFill = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
                 const svgThin = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
+                const favSvg = isFav ? svgFill : svgThin;
 
-                return `<div class="search-item"><a href="${targetLink}" class="search-item-link"><img src="${poster}" alt="${title}"><div class="search-item-info"><span class="search-item-title">${title}</span><span class="search-item-meta">${year} • ${i.media_type.toUpperCase()}</span></div></a><button class="search-fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event, ${i.id}, '${i.media_type}', '${safeTitle}', '${safePoster}', '${year}', '${rating}')">${isFav?svgFill:svgThin}</button></div>`;
+                return `<div class="search-item"><a href="${targetLink}" class="search-item-link"><img src="${poster}" alt="${title}"><div class="search-item-info"><span class="search-item-title">${title}</span><span class="search-item-meta">${year} • ${i.media_type.toUpperCase()}</span></div></a><button class="search-fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event, ${i.id}, '${i.media_type}', '${safeTitle}', '${safePoster}', '${year}', '${rating}')">${favSvg}</button></div>`;
             }).join('');
             dropdown.classList.add('active');
-        } else { dropdown.classList.remove('active'); }
-    } catch (error) { dropdown.classList.remove('active'); }
+        } else {
+            dropdown.classList.remove('active');
+        }
+    } catch (error) { 
+        console.error("[EN] Live Search Fetch Error:", error);
+        dropdown.classList.remove('active'); 
+    }
 }
 
+/**
+ * [EN] Clears the search input and hides the dropdown.
+ */
 window.clearSearch = function() {
     document.getElementById('search-input').value = '';
     document.getElementById('clear-btn').classList.remove('show-flex');
     document.getElementById('search-dropdown').classList.remove('active');
 };
+
+/**
+ * [EN] Triggers the full search redirection.
+ */
 window.executeSearch = function() {
     const q = document.getElementById('search-input').value.trim();
     if (q) window.location.href = `index.html?search=${encodeURIComponent(q)}&lang=${CURRENT_LANG}`;
 };
-window.handleEnter = function(e) { if (e.key === 'Enter') executeSearch(); };
 
-/* --- FAVORITES & HISTORY --- */
+/**
+ * [EN] Intercepts the Enter key to submit the search.
+ */
+window.handleEnter = function(e) { 
+    if (e.key === 'Enter') executeSearch(); 
+};
+
+/* --- GLOBAL HELPERS --- */
+
+/**
+ * [EN] Native Web Share API integration or clipboard fallback for sharing movies.
+ */
+window.shareMovie = () => {
+    const url = location.href, title = document.title;
+    if (navigator.share) return navigator.share({ title, text: `Watch ${title}`, url }).catch(() => {});
+    navigator.clipboard.writeText(url).then(() => alert('Link copied!')).catch(() => prompt('Copy link:', url));
+};
+
+/**
+ * [EN] Saves viewed items to LocalStorage for 'Continue Watching' section.
+ */
+window.saveHistory = (id, type, title, poster, year, rating) => {
+    let h = (JSON.parse(localStorage.getItem('xudo_history')) || []).filter(v => v.id != id);
+    h.unshift({ id, type, title, poster, year: String(year || '????'), rating: +(rating || 0) });
+    localStorage.setItem('xudo_history', JSON.stringify(h.slice(0, 20)));
+};
+
+/**
+ * [EN] Clears local viewing history.
+ */
+window.clearHistory = () => {
+    if (confirm(TEXTS.confirmClear)) {
+        localStorage.removeItem('xudo_history');
+        document.getElementById('continue-watching-section')?.remove();
+    }
+};
+
+/**
+ * [EN] Toggles an item in the user's local favorites list and updates the UI button.
+ */
 window.toggleFavorite = function(event, id, type, title, poster, year, rating) {
     event.preventDefault(); event.stopPropagation();
     let favs = JSON.parse(localStorage.getItem('xudo_favs')) || [];
     const index = favs.findIndex(f => f.id == id);
     const btn = event.currentTarget;
+
     const svgFill = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
     const svgThin = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
 
@@ -185,17 +283,20 @@ window.toggleFavorite = function(event, id, type, title, poster, year, rating) {
     } else {
         favs.splice(index, 1);
         btn.classList.remove('active'); btn.innerHTML = svgThin;
-        if (new URLSearchParams(window.location.search).get('type') === 'favorites') {
-            const card = btn.closest('.content-card');
-            if (card) card.remove();
-            if (favs.length === 0) document.getElementById('browse-grid').innerHTML = '<div class="no-results">No favorites yet.</div>';
-        }
     }
     localStorage.setItem('xudo_favs', JSON.stringify(favs));
 };
 
-function isFavorite(id) { return (JSON.parse(localStorage.getItem('xudo_favs')) || []).some(f => f.id == id); }
+/**
+ * [EN] Checks if a specific ID exists in local favorites.
+ */
+function isFavorite(id) { 
+    return (JSON.parse(localStorage.getItem('xudo_favs')) || []).some(f => f.id == id); 
+}
 
+/**
+ * [EN] Automatically updates the 'Continue Watching' history object when visiting a detail page.
+ */
 function updateContinueWatching(item) {
     let h = JSON.parse(localStorage.getItem('xudo_history')) || [];
     h = h.filter(x => x.id !== item.id);
@@ -209,55 +310,19 @@ function updateContinueWatching(item) {
     localStorage.setItem('xudo_history', JSON.stringify(h));
 }
 
-window.clearHistory = () => {
-    if (confirm(TEXTS.confirmClear)) {
-        localStorage.removeItem('xudo_history');
-        document.getElementById('continue-watching-section')?.remove();
-    }
-};
-
-/* --- TRANSFER HISTORY FROM XUDOTrailer --- */
-function receiveHistoryFromTrailer() {
-    const params = new URLSearchParams(window.location.search);
-    const historyParam = params.get('h');
-    
-    if (historyParam) {
-        try {
-            const historyData = JSON.parse(decodeURIComponent(historyParam));
-            
-            if (historyData && historyData.id && historyData.type) {
-                let h = JSON.parse(localStorage.getItem('xudo_history')) || [];
-                h = h.filter(x => x.id != historyData.id);
-                h.unshift({
-                    id: historyData.id,
-                    type: historyData.type,
-                    title: historyData.title,
-                    poster: historyData.poster,
-                    year: historyData.year,
-                    rating: historyData.rating
-                });
-                if (h.length > 20) h.pop();
-                localStorage.setItem('xudo_history', JSON.stringify(h));
-                
-                // Hapus parameter 'h' dari URL
-                params.delete('h');
-                const newUrl = params.toString() 
-                    ? `${window.location.pathname}?${params.toString()}` 
-                    : window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            }
-        } catch (e) {
-            console.warn('Failed to parse history data:', e);
-        }
-    }
-}
-
 /* --- UI HELPERS --- */
+
+/**
+ * [EN] Renders loading skeleton animations in the given container.
+ */
 function renderSkeletons(id, c) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = Array(c).fill('<div class="skeleton-card skeleton"></div>').join('');
 }
 
+/**
+ * [EN] Generates the HTML string for a movie/tv card component.
+ */
 function createCardHTML(item, typeOverride) {
     const t = item.media_type || typeOverride || (item.title ? 'movie' : 'tv');
     const title = sanitizeHTML(item.title || item.name);
@@ -266,135 +331,64 @@ function createCardHTML(item, typeOverride) {
     const poster = item.poster_path ? (item.poster_path.startsWith('http') ? item.poster_path : IMG_POSTER + item.poster_path) : 'https://via.placeholder.com/500x750/1a1a1a/fff?text=No+Image';
     const rating = item.vote_average ? item.vote_average.toFixed(1) : 'NR';
     const isFav = isFavorite(item.id);
-    const sT = title.replace(/'/g, "\\'"); const sP = poster.replace(/'/g, "\\'");
+    
+    // JS String escaping for inline events
+    const sT = title.replace(/'/g, "\\'");
+    const sP = poster.replace(/'/g, "\\'");
     const targetLink = getTargetUrl({ id: item.id, media_type: t });
+
+    const mediaTypeLabel = t === 'movie' ? 'Movie' : 'TV Series';
+    const seoAlt = `${title} (${year}) - Full ${mediaTypeLabel} Review & Details`;
 
     const SVG_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
     const SVG_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
 
     return `<div class="content-card" onclick="location.href='${targetLink}'">
         <button class="card-fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event, ${item.id}, '${t}', '${sT}', '${sP}', '${year}', '${rating}')">${isFav ? SVG_ON : SVG_OFF}</button>
-        <img src="${poster}" alt="${title}" loading="lazy">
+        <img src="${poster}" alt="${seoAlt}" loading="lazy">
         <span class="card-rating">★ ${rating}</span>
         <div class="card-info"><div class="card-title">${title}</div><div class="card-year">${year} • ${t.toUpperCase()}</div></div>
     </div>`;
 }
 
-/* --- STREAMING PLAYER SYSTEM (V1 ENGINE) --- */
-function renderServerButtons() {
-    const container = document.querySelector('.server-control');
-    if (!container) return;
-    const label = container.querySelector('.server-label') || document.createElement('span');
-    label.className = 'server-label'; label.innerText = 'Select Server:';
-    container.innerHTML = ''; container.appendChild(label);
-
-    SERVER_LIST.forEach(srv => {
-        const btn = document.createElement('button');
-        btn.className = `server-btn ${currentServer === srv.id ? 'active' : ''}`;
-        btn.innerText = srv.name;
-        btn.onclick = () => window.changeServer(srv.id);
-        container.appendChild(btn);
-    });
-}
-
-window.changeServer = function(srvId) {
-    currentServer = srvId;
-    renderServerButtons();
-    const p = new URLSearchParams(window.location.search);
-    updatePlayer(p.get('type'), p.get('id'));
-};
-
-function updatePlayer(type, id) {
-    let src = '';
-    const server = currentServer;
-
-    if (server === 'vidlink') {
-        src = type === 'movie' ? `https://vidlink.pro/movie/${id}` : `https://vidlink.pro/tv/${id}/${currentSeason}/${currentEpisode}`;
-    } else if (server === 'vidsrc') {
-        src = type === 'movie' ? `https://vidsrc.xyz/embed/movie/${id}` : `https://vidsrc.xyz/embed/tv/${id}/${currentSeason}/${currentEpisode}`;
-    } else if (server === 'autoembed') {
-        src = type === 'movie' ? `https://autoembed.cc/embed/movie/${id}` : `https://autoembed.cc/embed/tv/${id}/${currentSeason}/${currentEpisode}`;
-    } else if (server === '2embed') {
-        src = type === 'movie' ? `https://www.2embed.cc/embed/${id}` : `https://www.2embed.cc/embedtv/${id}&s=${currentSeason}&e=${currentEpisode}`;
-    }
-
-    const el = document.getElementById('player-container');
-    if (el) el.innerHTML = `<iframe src="${src}" class="player-frame" allowfullscreen referrerpolicy="origin" scrolling="no" frameborder="0"></iframe>`;
-}
-
-async function loadTVSeasons(id) {
-    const s = document.getElementById('season-select');
-    s.onchange = (e) => {
-        currentSeason = e.target.value; currentEpisode = 1;
-        loadEpisodesForSeason(id, currentSeason); updatePlayer('tv', id);
-        updateURL(id);
-    };
-    try {
-        const res = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
-        const d = await res.json();
-        s.innerHTML = '';
-        d.seasons.forEach(x => {
-            if (x.season_number > 0) {
-                const o = document.createElement('option');
-                o.value = x.season_number; o.text = `${TEXTS.season} ${x.season_number}`;
-                if (x.season_number == currentSeason) o.selected = true;
-                s.appendChild(o);
-            }
-        });
-        loadEpisodesForSeason(id, currentSeason);
-    } catch (e) {}
-}
-
-async function loadEpisodesForSeason(id, sn) {
-    const g = document.getElementById('episodes-grid');
-    g.innerHTML = 'Loading...';
-    try {
-        const res = await fetch(`${BASE_URL}/tv/${id}/season/${sn}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
-        const d = await res.json();
-        g.innerHTML = '';
-        d.episodes.forEach(e => {
-            const b = document.createElement('div');
-            b.className = `ep-btn ${e.episode_number == currentEpisode ? 'active' : ''}`;
-            b.innerText = `Ep ${e.episode_number}`;
-            b.onclick = () => {
-                currentEpisode = e.episode_number;
-                document.querySelectorAll('.ep-btn').forEach(x => x.classList.remove('active'));
-                b.classList.add('active'); updatePlayer('tv', id);
-                updateURL(id);
-            };
-            g.appendChild(b);
-        });
-    } catch (e) { g.innerHTML = '<span style="color:red">Failed.</span>'; }
-}
-
-function updateURL(id) {
-    const url = `watch.html?type=tv&id=${id}&s=${currentSeason}&e=${currentEpisode}&lang=${CURRENT_LANG}`;
-    window.history.pushState({ path: url }, '', url);
-}
-
 /* --- PAGE LOGIC --- */
+
+/**
+ * [EN] Fetches and renders genre filter buttons.
+ */
 async function fetchGenres(type) {
     const list = document.getElementById('genre-list');
     if (!list) return;
     list.innerHTML = `<button class="genre-btn active" onclick="filterByGenre(null, this)">${TEXTS.allGenres}</button>`;
     const add = (g) => {
         const b = document.createElement('button');
-        b.className = 'genre-btn'; b.innerText = g.name;
+        b.className = 'genre-btn'; b.innerText = g.name; // innerText is safe
         b.onclick = () => filterByGenre(g.id, b);
         list.appendChild(b);
     };
     const key = `xudo_genres_en_${type}`;
     const cached = localStorage.getItem(key);
-    if (cached) { JSON.parse(cached).forEach(add); } 
-    else {
+    
+    if (cached) {
+        JSON.parse(cached).forEach(add);
+    } else {
         try {
             const res = await fetch(`${BASE_URL}/genre/${type}/list?api_key=${API_KEY}&language=en-US`);
+            if (!res.ok) throw new Error("Failed to fetch genres");
             const d = await res.json();
-            if (d.genres) { localStorage.setItem(key, JSON.stringify(d.genres)); d.genres.forEach(add); }
-        } catch (error) {}
+            if (d.genres) { 
+                localStorage.setItem(key, JSON.stringify(d.genres)); 
+                d.genres.forEach(add); 
+            }
+        } catch (error) {
+            console.error("[EN] Fetch Genres Error:", error);
+        }
     }
 }
 
+/**
+ * [EN] Global function to trigger genre filtering in Browse page.
+ */
 window.filterByGenre = function(id, btn) {
     document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -405,17 +399,29 @@ window.filterByGenre = function(id, btn) {
     loadBrowseContent();
 };
 
+/**
+ * [EN] Fetches content certification (age rating) based on US release.
+ */
 async function fetchCertification(type, id) {
     const el = document.getElementById('detail-cert');
     if (!el) return;
     try {
         const res = await fetch(type === 'movie' ? `${BASE_URL}/movie/${id}/release_dates?api_key=${API_KEY}` : `${BASE_URL}/tv/${id}/content_ratings?api_key=${API_KEY}`);
+        if (!res.ok) throw new Error("Certification API failed");
         const d = await res.json();
         let c = type === 'movie' ? (d.results.find(r => r.iso_3166_1 === 'US')?.release_dates.find(x => x.certification)?.certification) : (d.results.find(r => r.iso_3166_1 === 'US')?.rating);
-        if (c) { el.innerText = sanitizeHTML(c); el.style.display = 'inline-block'; }
-    } catch (error) {}
+        if (c) { 
+            el.innerText = sanitizeHTML(c); 
+            el.style.display = 'inline-block'; 
+        }
+    } catch (error) {
+        console.warn("[EN] Could not fetch certification:", error);
+    }
 }
 
+/**
+ * [EN] Initializes the Homepage logic (either search results or default sliders).
+ */
 async function initHome() {
     const q = new URLSearchParams(window.location.search).get('search');
     if (q) {
@@ -423,13 +429,16 @@ async function initHome() {
         updateSEOMeta(`Search: ${q}`, `Results for ${q}`); 
         await performSearch(q);
     } else {
-        updateSEOMeta("XUDOMOVIE - Watch Movies Streaming", "Stream premium movies and TV shows for free.");
+        updateSEOMeta("XUDOTrailer - Reviews, Trailers & Movie Database", "XUDOTrailer is your premier source for movie reviews, cast information, trailers, and ratings.");
         await loadHeroSlider(); 
         loadContinueWatching(); 
         await loadAllSections();
     }
 }
 
+/**
+ * [EN] Renders the 'Continue Watching' slider based on local storage.
+ */
 function loadContinueWatching() {
     const h = JSON.parse(localStorage.getItem('xudo_history')) || [];
     if (!h.length) return;
@@ -439,9 +448,13 @@ function loadContinueWatching() {
     m.prepend(s);
 }
 
+/**
+ * [EN] Fetches trending content and populates the Top Hero Slider.
+ */
 async function loadHeroSlider() {
     try {
         const res = await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error("Hero slider fetch failed");
         const d = await res.json();
         let t = d.results.slice(0, 10);
         const c = document.getElementById('hero-slider'), dots = document.getElementById('hero-dots');
@@ -480,28 +493,41 @@ async function loadHeroSlider() {
             if (idx === t.length + 1) { idx = 1; c.style.transition = 'none'; c.style.transform = `translateX(-100%)`; }
             if (idx === 0) { idx = t.length; c.style.transition = 'none'; c.style.transform = `translateX(-${idx * 100}%)`; }
         });
+
         const startTimer = () => { clearInterval(timer); timer = setInterval(next, 5000); };
         const resetTimer = () => { clearInterval(timer); startTimer(); };
         startTimer();
-    } catch (error) {}
+    } catch (error) {
+        console.error("[EN] Load Hero Slider Error:", error);
+    }
 }
 
+/**
+ * [EN] Loads multiple horizontal category sliders for the Homepage.
+ */
 async function loadAllSections() {
     const main = document.getElementById('main-content');
     const cats = [{t: TEXTS.movPopular,u:"/movie/popular",k:"movie"},{t: TEXTS.movNowPlaying,u:"/movie/now_playing",k:"movie"},{t: TEXTS.movUpcoming,u:"/movie/upcoming",k:"movie"},{t: TEXTS.movTopRated,u:"/movie/top_rated",k:"movie"},{t: TEXTS.tvPopular,u:"/tv/popular",k:"tv"},{t: TEXTS.tvAiringToday,u:"/tv/airing_today",k:"tv"},{t: TEXTS.tvOnAir,u:"/tv/on_the_air",k:"tv"},{t: TEXTS.tvTopRated,u:"/tv/top_rated",k:"tv"}];
     for (const c of cats) {
         try {
             const res = await fetch(`${BASE_URL}${c.u}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+            if (!res.ok) throw new Error(`Failed section: ${c.u}`);
             const d = await res.json();
             if (!d.results.length) continue;
+            
             const link = `browse.html?endpoint=${c.u}&title=${encodeURIComponent(c.t)}&type=${c.k}&lang=${CURRENT_LANG}`;
             const s = document.createElement('section'); s.className = 'content-section';
             s.innerHTML = `<div class="section-header"><h2 class="section-heading"><a href="${link}">${c.t}</a></h2><a href="${link}" class="section-more-link">${TEXTS.viewMore} &rsaquo;</a></div><div class="horizontal-slider">${d.results.map(i => createCardHTML(i, c.k)).join('')}</div>`;
             main.appendChild(s);
-        } catch (error) {}
+        } catch (error) {
+            console.error(`[EN] Error loading section ${c.t}:`, error);
+        }
     }
 }
 
+/**
+ * [EN] Executes a full multi-search and renders results in a grid.
+ */
 async function performSearch(q) {
     const m = document.getElementById('main-content');
     const safeQ = sanitizeHTML(q);
@@ -509,12 +535,19 @@ async function performSearch(q) {
     renderSkeletons('search-grid', 10);
     try {
         const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&language=${CURRENT_LANG}&query=${encodeURIComponent(q)}`);
+        if (!res.ok) throw new Error("Search API failed");
         const d = await res.json();
         const results = d.results.filter(i => i.media_type === 'movie' || i.media_type === 'tv');
         m.innerHTML = `<div class="media-grid-container"><h2 class="page-title">Results: "${safeQ}"</h2>${results.length ? `<div class="media-grid">${results.map(i => createCardHTML(i)).join('')}</div>` : '<div class="no-results">No results.</div>'}</div>`;
-    } catch (error) {}
+    } catch (error) {
+        console.error("[EN] Perform Search Error:", error);
+        m.innerHTML = `<div class="media-grid-container"><h2 class="page-title" style="color:red;">Error fetching results</h2></div>`;
+    }
 }
 
+/**
+ * [EN] Initializes the Browse page (grid layout) including Favorites logic.
+ */
 async function initBrowse() {
     const p = new URLSearchParams(window.location.search);
     const ep = p.get('endpoint'), title = p.get('title'), type = p.get('type');
@@ -539,6 +572,9 @@ async function initBrowse() {
     await loadBrowseContent();
 }
 
+/**
+ * [EN] Loads and appends paginated content into the Browse grid.
+ */
 async function loadBrowseContent() {
     if (isLoading) return; isLoading = true;
     const btn = document.getElementById('load-more-btn');
@@ -546,25 +582,38 @@ async function loadBrowseContent() {
     try {
         const sep = currentBrowseEndpoint.includes('?') ? '&' : '?';
         const res = await fetch(`${BASE_URL}${currentBrowseEndpoint}${sep}api_key=${API_KEY}&language=${CURRENT_LANG}&page=${currentPage}`);
+        if (!res.ok) throw new Error("Browse content fetch failed");
         const d = await res.json();
+        
         if (currentPage === 1) document.getElementById('browse-grid').innerHTML = '';
         document.getElementById('browse-grid').insertAdjacentHTML('beforeend', d.results.map(i => createCardHTML(i, currentMediaType)).join(''));
+        
         currentPage++;
-        if (d.page >= d.total_pages) { btn.style.display = 'none'; } 
-        else { btn.innerText = TEXTS.loadMore; btn.disabled = false; btn.style.display = 'inline-block'; }
-    } catch (error) { btn.innerText = "Failed"; } 
-    finally { isLoading = false; }
+        if (d.page >= d.total_pages) {
+            btn.style.display = 'none';
+        } else { 
+            btn.innerText = TEXTS.loadMore; 
+            btn.disabled = false; 
+            btn.style.display = 'inline-block'; 
+        }
+    } catch (error) { 
+        console.error("[EN] Load Browse Content Error:", error);
+        btn.innerText = "Failed"; 
+    } finally { 
+        isLoading = false; 
+    }
 }
 
+/**
+ * [EN] Initializes the detailed Watch page logic.
+ */
 async function initWatchPage() {
     const p = new URLSearchParams(window.location.search);
     const type = p.get('type'), id = p.get('id');
     currentSeason = p.get('s') || 1; currentEpisode = p.get('e') || 1;
     if (!id || !type) return window.location.href = `index.html`;
 
-    renderServerButtons();
     updatePlayer(type, id);
-
     if (type === 'tv') {
         const c = document.getElementById('tv-controls');
         if (c) c.style.display = 'block'; 
@@ -576,6 +625,85 @@ async function initWatchPage() {
     await fetchSimilarMovies(type, id);
 }
 
+/**
+ * [EN] Fetches YouTube trailer key and updates the iframe player.
+ */
+async function updatePlayer(type, id) {
+    const el = document.getElementById('player-container');
+    el.innerHTML = '<div style="display:grid;place-items:center;height:100%;background:#000;color:#fff"><div class="loader">Loading Player...</div></div>';
+    try {
+        const res = await fetch(`${BASE_URL}/${type}/${id}/videos?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error("Video API failed");
+        const d = await res.json();
+        let v = (d.results || []).find(x => x.site === "YouTube" && x.type === "Trailer") || (d.results || [])[0];
+        
+        el.innerHTML = v ? `<iframe src="https://www.youtube.com/embed/${v.key}?autoplay=1&mute=1&modestbranding=1&rel=0&iv_load_policy=3" class="player-frame" allowfullscreen></iframe>` : `<div style="display:grid;place-items:center;height:100%;color:#888;">NO TRAILER AVAILABLE</div>`;
+    } catch (error) { 
+        console.error("[EN] Update Player Error:", error);
+        el.innerHTML = `<div style="display:grid;place-items:center;height:100%;color:#e50914;">ERROR LOADING MEDIA</div>`; 
+    }
+}
+
+/**
+ * [EN] Populates the Season select dropdown for TV Shows.
+ */
+async function loadTVSeasons(id) {
+    const s = document.getElementById('season-select');
+    s.onchange = (e) => {
+        currentSeason = e.target.value; currentEpisode = 1;
+        loadEpisodesForSeason(id, currentSeason); updatePlayer('tv', id);
+    };
+    try {
+        const res = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error("TV Seasons API failed");
+        const d = await res.json();
+        s.innerHTML = '';
+        d.seasons.forEach(x => {
+            if (x.season_number > 0) {
+                const o = document.createElement('option');
+                o.value = x.season_number; 
+                o.text = `${TEXTS.season} ${x.season_number}`;
+                if (x.season_number == currentSeason) o.selected = true;
+                s.appendChild(o);
+            }
+        });
+        loadEpisodesForSeason(id, currentSeason);
+    } catch (error) {
+        console.error("[EN] Load TV Seasons Error:", error);
+    }
+}
+
+/**
+ * [EN] Fetches and displays episodes based on the selected season.
+ */
+async function loadEpisodesForSeason(id, sn) {
+    const g = document.getElementById('episodes-grid');
+    g.innerHTML = 'Loading...';
+    try {
+        const res = await fetch(`${BASE_URL}/tv/${id}/season/${sn}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error(`Season ${sn} API failed`);
+        const d = await res.json();
+        g.innerHTML = '';
+        d.episodes.forEach(e => {
+            const b = document.createElement('div');
+            b.className = `ep-btn ${e.episode_number == currentEpisode ? 'active' : ''}`;
+            b.innerText = `Ep ${e.episode_number}`;
+            b.onclick = () => {
+                currentEpisode = e.episode_number;
+                document.querySelectorAll('.ep-btn').forEach(x => x.classList.remove('active'));
+                b.classList.add('active'); updatePlayer('tv', id);
+            };
+            g.appendChild(b);
+        });
+    } catch (error) {
+        console.error("[EN] Load Episodes Error:", error);
+        g.innerHTML = '<span style="color:red">Failed to load episodes.</span>';
+    }
+}
+
+/**
+ * [EN] Fetches core details and injects SEO disclaimers into the Watch page.
+ */
 async function fetchMovieDetails(type, id) {
     try {
         const res = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=${CURRENT_LANG}`);
@@ -586,64 +714,114 @@ async function fetchMovieDetails(type, id) {
         const title = d.title || d.name, year = (d.release_date || d.first_air_date || '').split('-')[0] || '----';
         const rt = type === 'movie' && d.runtime ? `${Math.floor(d.runtime/60)}h ${d.runtime%60}m` : (type === 'tv' && d.episode_run_time?.[0] ? `${d.episode_run_time[0]}m / ep` : 'N/A');
 
-        updateSEOMeta(`Watch ${title} (${year}) Free Online`, `Stream ${title} (${year}) in HD quality for free.`);
+        updateSEOMeta(`${title} (${year}) - Reviews & Details`, `Read reviews and watch the trailer for ${title}.`);
 
-        const overviewClean = sanitizeHTML(d.overview || "No synopsis available.");
-        const set = (id, v, isHTML = false) => { const el = document.getElementById(id); if (el) isHTML ? el.innerHTML = v : el.innerText = v; };
-
+        const authDomain = sanitizeHTML(CONFIG.AUTHORITY_DOMAIN);
         const currentDomain = sanitizeHTML(window.location.hostname);
-        const seoText = `
-        <div style="color: #999; font-size: 0.85rem; line-height: 1.6; padding: 15px; background: rgba(0,0,0,0.5); border-left: 4px solid #e50914; border-radius: 4px; margin-top: 25px;">
-            <strong style="color: #ccc;">DMCA & Legal Disclaimer:</strong> <em>${currentDomain}</em> operates as an index and aggregator of links. We do not host, rip, upload, or store any videos, films, or media files on our servers. All video streams and content are provided by non-affiliated third-party platforms. <em>${currentDomain}</em> acts solely as a search engine for publicly available content across the internet and holds no liability for third-party media. If you believe any content infringes upon your copyright, please direct your Digital Millennium Copyright Act (DMCA) takedown notices directly to the respective third-party video hosters, as we have no control over their servers or content.
-        </div>`;
+        const overviewClean = sanitizeHTML(d.overview || "No synopsis available.");
+        const titleClean = sanitizeHTML(title);
+        
+        // [EN] Dynamic SEO injection variations to prevent spam detection
+        const seoVariations = [
+            `Find movie summaries, production details, and trivia about <strong>${titleClean}</strong> on <strong>${currentDomain}</strong>.`,
+            `Explore the complete cast list, ratings, and reviews for <strong>${titleClean}</strong> right here at <strong>${currentDomain}</strong>.`,
+            `Your ultimate guide to <strong>${titleClean}</strong>. Dive into the plot and exclusive details provided by <strong>${currentDomain}</strong>.`
+        ];
+        const randomSeoText = seoVariations[Math.floor(Math.random() * seoVariations.length)];
+        
+        // [EN] Legal disclaimer kept static
+        const disclaimerText = `<br><br><em style="color:#888; font-size:0.9em;">Disclaimer: This website does not host, stream, or distribute any video content. <strong>${currentDomain}</strong> is part of the <strong>${authDomain}</strong> network and only provides movie information, reviews, and related editorial content.</em>`;
+
+        const seoText = `<br><br>${randomSeoText}${disclaimerText}`;
+
+        const set = (id, v, isHTML = false) => { const el = document.getElementById(id); if (el) isHTML ? el.innerHTML = v : el.innerText = v; };
 
         set('detail-title', title);
         set('detail-overview', overviewClean + seoText, true);
         set('detail-year', year);
         set('detail-rating', `⭐ ${d.vote_average?.toFixed(1) || 'NR'}`);
-        if(document.getElementById('detail-runtime')) set('detail-runtime', rt);
+        set('detail-runtime', rt);
 
         const img = document.getElementById('detail-poster');
         if (img) { img.src = d.poster_path ? IMG_POSTER + d.poster_path : 'https://via.placeholder.com/500x750?text=No+Poster'; img.alt = title; }
         const g = document.getElementById('detail-genres');
         if (g && d.genres) g.innerHTML = d.genres.map(x => `<span class="genre-tag">${sanitizeHTML(x.name)}</span>`).join('');
-    } catch (error) {}
+
+        // =====================================================================
+// [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (SMART DEEP-LINKING)
+// WITH HISTORY TRANSFER TO XUDOMOVIE
+// =====================================================================
+const watchFullBtn = document.getElementById('watch-full-btn');
+if (watchFullBtn) {
+    const localFile = LOCAL_SEARCH_INDEX.find(x => x.id == id && x.type == type);
+    
+    // Siapkan data history untuk transfer ke XUDOMovie
+    const historyData = {
+        id: id,
+        type: type,
+        title: title,
+        poster: d.poster_path ? IMG_POSTER + d.poster_path : 'https://via.placeholder.com/500',
+        year: year,
+        rating: d.vote_average ? d.vote_average.toFixed(1) : '0'
+    };
+    
+    // Encode history data untuk URL
+    const encodedHistory = encodeURIComponent(JSON.stringify(historyData));
+    
+    if (localFile) {
+        watchFullBtn.href = `https://xudomovie.us/${localFile.folder}/${localFile.slug}.html?h=${encodedHistory}`;
+    } else {
+        watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}&h=${encodedHistory}`;
+    }
+    
+    watchFullBtn.target = "_blank";
 }
 
+/**
+ * [EN] Fetches cast list and creates horizontal scrolling profile cards.
+ */
 async function fetchCast(type, id) {
     try {
         const res = await fetch(`${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error("Credits API failed");
         const d = await res.json();
         const l = document.getElementById('cast-list');
-        if (d.cast && d.cast.length) {
+        if (d.cast.length) {
             l.innerHTML = d.cast.slice(0, 10).map(a => {
                 const name = sanitizeHTML(a.name);
                 const char = sanitizeHTML(a.character);
                 return `<div class="cast-card"><img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200?text=No+Img'}" class="cast-img"><div class="cast-name">${name}</div><div class="cast-character">${char}</div></div>`;
             }).join('');
-        } else { l.innerHTML = '<div style="color:#666;font-size:0.8rem;">No cast info available.</div>'; }
-    } catch (error) {}
+        } else {
+            l.innerHTML = '<div style="color:#666;font-size:0.8rem;">No cast info available.</div>';
+        }
+    } catch (error) {
+        console.error("[EN] Fetch Cast Error:", error);
+    }
 }
 
+/**
+ * [EN] Fetches recommendations based on current content ID.
+ */
 async function fetchSimilarMovies(type, id) {
     try {
         const res = await fetch(`${BASE_URL}/${type}/${id}/similar?api_key=${API_KEY}&language=${CURRENT_LANG}`);
+        if (!res.ok) throw new Error("Similar movies API failed");
         const d = await res.json();
-        if (d.results && d.results.length) {
+        if (d.results.length) {
             document.getElementById('rec-slider').innerHTML = d.results.map(i => createCardHTML(i, type)).join('');
         } else {
             document.querySelector('.recommendations-section').style.display = 'none';
         }
-    } catch (error) { document.querySelector('.recommendations-section').style.display = 'none'; }
+    } catch (error) {
+        console.error("[EN] Fetch Similar Error:", error);
+        document.querySelector('.recommendations-section').style.display = 'none';
+    }
 }
 
+/* --- INIT --- */
 document.addEventListener('DOMContentLoaded', () => {
-    loadSearchIndex(); 
-    updateCanonical(); 
-    initContentProtection(); 
-    initSearchEvents();
-    receiveHistoryFromTrailer();
-    
+    loadSearchIndex(); updateCanonical(); initContentProtection(); initSearchEvents();
     if (document.getElementById('hero-slider')) initHome();
     else if (document.getElementById('browse-grid')) initBrowse();
     else if (document.getElementById('player-container')) initWatchPage();
