@@ -748,24 +748,27 @@ async function fetchMovieDetails(type, id) {
         if (g && d.genres) g.innerHTML = d.genres.map(x => `<span class="genre-tag">${sanitizeHTML(x.name)}</span>`).join('');
 
         // =====================================================================
-        // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (1:1 MAPPING to XUDOMovie)
+        // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (SMART DEEP-LINKING)
         // =====================================================================
         const watchFullBtn = document.getElementById('watch-full-btn');
         if (watchFullBtn) {
             // 1. Determine the folder based on media type (movie or tv)
             const folder = (type === 'movie') ? 'movies' : 'tvshows';
             
-            // 2. Create a URL-friendly slug by removing non-alphanumeric characters
-            const slugText = titleClean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const safeSlug = slugText || `untitled-${id}`;
+            // 2. Create a URL-friendly slug and handle potential empty title
+            const slugText = titleClean ? titleClean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
             
-            // 3. Combine slug with the release year (matching Python generator logic)
-            const finalSlug = `${safeSlug}-${year}`;
+            // 3. Logic: If year and slug are available, go to Static URL. Otherwise, go to Dynamic URL.
+            if (slugText && year && year !== '----') {
+                // Use SEO-friendly Static Folder URL
+                const finalSlug = `${slugText}-${year}`;
+                watchFullBtn.href = `https://xudomovie.us/${folder}/${finalSlug}.html`;
+            } else {
+                // Fallback to Dynamic Watch URL if metadata is incomplete
+                watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}`;
+            }
             
-            // 4. Inject the final deep-link URL into the button's href attribute
-            watchFullBtn.href = `https://xudomovie.us/${folder}/${finalSlug}.html`;
-            
-            // 5. Set target to _blank to ensure the link opens in a new browser tab
+            // 4. Set target to _blank for a better user experience
             watchFullBtn.target = "_blank";
         }
 
