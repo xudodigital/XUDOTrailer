@@ -3,7 +3,7 @@ name: Daily TMDB Auto Update
 # When does this robot run?
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs automatically every day at 00:00 UTC (7:00 AM WIB)
+    - cron: '47 23 * * *' # Runs automatically every day at 00:00 UTC (7:00 AM WIB)
   workflow_dispatch: # Button to trigger the workflow manually at any time
 
 jobs:
