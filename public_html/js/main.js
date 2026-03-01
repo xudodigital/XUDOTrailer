@@ -815,4 +815,3 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (document.getElementById('browse-grid')) initBrowse();
     else if (document.getElementById('player-container')) initWatchPage();
 });
-
