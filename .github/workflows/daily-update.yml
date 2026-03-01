@@ -3,7 +3,7 @@ name: Daily TMDB Auto Update
 on:
   schedule:
     # Runs automatically every day at 9:35 AM Cambodia time (02:35 UTC)
-    - cron: '35 2 * * *' 
+    - cron: '40 2 * * *' 
   workflow_dispatch: 
 
 jobs:
