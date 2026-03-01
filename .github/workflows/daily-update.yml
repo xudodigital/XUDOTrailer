@@ -1,0 +1,16 @@
+name: Daily TMDB Auto Update
+
+on:
+  schedule:
+    # Runs automatically every day at 9:35 AM Cambodia time (02:35 UTC)
+    - cron: '35 2 * * *' 
+  workflow_dispatch: 
+
+jobs:
+  call-devops:
+    permissions:
+      contents: write
+    uses: xudodigital/XUDODevOps/.github/workflows/reusable-generator.yml@main
+    secrets:
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+      GOOGLE_INDEXING_JSON: ${{ secrets.GOOGLE_INDEXING_JSON }}
