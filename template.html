@@ -88,20 +88,18 @@
                 <p class="overview">{{OVERVIEW}}</p>
                 
                 <div id="action-group" style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="share-btn" onclick="window.shareMovie()" style="background: #222; border: 1px solid #444; color: #fff; padding: 12px 30px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; transition: 0.3s;">
+                    <button class="share-btn" onclick="window.shareMovie()" style="flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 12px 30px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: 1rem; transition: 0.3s; text-transform: uppercase;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                             <circle cx="18" cy="5" r="3"></circle>
                             <circle cx="6" cy="12" r="3"></circle>
                             <circle cx="18" cy="19" r="3"></circle>
                             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                        </svg>
-                        Share
+                        </svg> SHARE
                     </button>
 
-                    <a href="https://xudomovie.us/{{FOLDER}}/{{SLUG}}.html" target="_blank" rel="dofollow" class="watch-now-btn" aria-label="Watch full movie on XUDOMovie">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
-                        Watch
+                    <a href="https://xudomovie.us/{{FOLDER}}/{{SLUG}}.html" target="_blank" rel="dofollow" class="watch-now-btn" aria-label="Watch full movie on XUDOMovie" style="flex: 1; background: #e50914; border: none; color: #fff; padding: 12px 30px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: 1rem; transition: 0.3s; text-transform: uppercase; text-decoration: none;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg> WATCH
                     </a>
                 </div>
 
@@ -144,4 +142,5 @@
 </body>
 
 </html>
+
 
