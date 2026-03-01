@@ -725,10 +725,8 @@ async function fetchMovieDetails(type, id) {
         ];
         const randomSeoText = seoVariations[Math.floor(Math.random() * seoVariations.length)];
         
-        // [EN] Legal disclaimer kept static
-        const disclaimerText = `<br><br><em style="color:#888; font-size:0.9em;">Disclaimer: This website does not host, stream, or distribute any video content. <strong>${currentDomain}</strong> is part of the <strong>${authDomain}</strong> network and only provides movie information, reviews, and related editorial content.</em>`;
-
-        const seoText = `<br><br>${randomSeoText}${disclaimerText}`;
+        // [EN] Inject random SEO text without the legal disclaimer
+        const seoText = `<br><br>${randomSeoText}`;
 
         const set = (id, v, isHTML = false) => { const el = document.getElementById(id); if (el) isHTML ? el.innerHTML = v : el.innerText = v; };
 
@@ -817,3 +815,4 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (document.getElementById('browse-grid')) initBrowse();
     else if (document.getElementById('player-container')) initWatchPage();
 });
+
