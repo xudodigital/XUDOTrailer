@@ -741,7 +741,7 @@ async function fetchMovieDetails(type, id) {
         const g = document.getElementById('detail-genres');
         if (g && d.genres) g.innerHTML = d.genres.map(x => `<span class="genre-tag">${sanitizeHTML(x.name)}</span>`).join('');
 
-       // =====================================================================
+        // =====================================================================
         // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (ALWAYS DYNAMIC)
         // =====================================================================
         const watchFullBtn = document.getElementById('watch-full-btn');
@@ -758,6 +758,11 @@ async function fetchMovieDetails(type, id) {
             
             // [EN] Set target to _blank for a better user experience
             watchFullBtn.target = "_blank";
+        }
+
+            } catch (error) { 
+                console.error("[EN] Fetch Movie Details Error:", error); 
+            }
         }
 
 /**
@@ -808,7 +813,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('hero-slider')) initHome();
     else if (document.getElementById('browse-grid')) initBrowse();
     else if (document.getElementById('player-container')) initWatchPage();
-
 });
-
-
