@@ -717,11 +717,15 @@ async function fetchMovieDetails(type, id) {
         const overviewClean = sanitizeHTML(d.overview || "No synopsis available.");
         const titleClean = sanitizeHTML(title);
         
-        // [EN] Dynamic SEO injection variations to prevent spam detection
+        // [EN] Dynamic Legal/DMCA disclaimers for US domain compliance
         const seoVariations = [
+<<<<<<< HEAD
             `Find movie summaries, production details, and official trailers for <strong>${titleClean}</strong> on <strong>${currentDomain}</strong>.`,
             `Explore the complete cast list, ratings, and reviews for <strong>${titleClean}</strong> right here at <strong>${currentDomain}</strong>.`,
             `Your ultimate guide to <strong>${titleClean}</strong>. Dive into the plot and exclusive details provided by <strong>${currentDomain}</strong>.`
+=======
+            `<strong>Legal Disclaimer & DMCA Compliance Notice:</strong><br> Please be advised that <strong>${currentDomain}</strong> strictly adheres to the provisions of the Digital Millennium Copyright Act (DMCA) and applicable United States copyright laws, including 17 U.S.C. § 512. This platform functions exclusively as an automated indexing and search aggregator. We do not host, upload, store, or control any media files, video streams, or copyrighted materials pertaining to <strong>${titleClean}</strong> on our proprietary servers or infrastructure. All multimedia content accessed through this interface is hosted and delivered by independent, non-affiliated third-party providers. Any legal inquiries, copyright claims, or takedown requests regarding the media content must be directed explicitly to the respective third-party hosting services, as <strong>${currentDomain}</strong> retains no direct or jurisdictional control over external media repositories.`
+>>>>>>> ea1b883f0560d70f623916764cf89f2d2c8c70b7
         ];
         const randomSeoText = seoVariations[Math.floor(Math.random() * seoVariations.length)];
         
