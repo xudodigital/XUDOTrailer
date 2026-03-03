@@ -6,7 +6,7 @@ import requests, os, re, time, json, random
 API_KEY = os.getenv('TMDB_API_KEY', '9d3fd8464dbd695f9457240aeea19851')
 BASE_URL = 'https://api.themoviedb.org/3'
 LANG = 'en-US'
-TOTAL_PAGES = 10  # Fetch more content
+TOTAL_PAGES = 1  # Fetch more content
 
 # [MULTI-CLUSTER CONFIGURATION]
 TARGETS = [
@@ -325,12 +325,15 @@ def process_targets(all_content):
                 ]
                 
                 # [EN] Dynamic Call-To-Action (CTA) directing users to the streaming site
+                # [FIX] URL changed to always point to the dynamic watch.html page
+                dynamic_watch_url = f"https://xudomovie.us/watch.html?type={media_type}&id={item['id']}&lang={LANG}"
+                
                 cta_variations = [
-                    f"Ready to watch? Stream <strong>{title}</strong> now on <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Want to see the full feature? Watch <strong>{title}</strong> in high quality over at <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Don't just read about it—experience it! Catch <strong>{title}</strong> online at <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
-                    f"Grab your popcorn and head over to <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a> to enjoy <strong>{title}</strong> today.",
-                    f"Looking for the full episode or movie? Start streaming <strong>{title}</strong> directly on <a href='https://xudomovie.us/{folder}/{slug}.html' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>."
+                    f"Ready to watch? Stream <strong>{title}</strong> now on <a href='{dynamic_watch_url}' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Want to see the full feature? Watch <strong>{title}</strong> in high quality over at <a href='{dynamic_watch_url}' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Don't just read about it—experience it! Catch <strong>{title}</strong> online at <a href='{dynamic_watch_url}' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>.",
+                    f"Grab your popcorn and head over to <a href='{dynamic_watch_url}' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a> to enjoy <strong>{title}</strong> today.",
+                    f"Looking for the full episode or movie? Start streaming <strong>{title}</strong> directly on <a href='{dynamic_watch_url}' target='_blank' rel='dofollow'><strong>XUDOMovie</strong></a>."
                 ]
                 
                 # [EN] Combining SEO Spintax with CTA Spintax

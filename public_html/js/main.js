@@ -719,14 +719,14 @@ async function fetchMovieDetails(type, id) {
         
         // [EN] Dynamic SEO injection variations to prevent spam detection
         const seoVariations = [
-            `Find movie summaries, production details, and trivia about <strong>${titleClean}</strong> on <strong>${currentDomain}</strong>.`,
+            `Find movie summaries, production details, and official trailers for <strong>${titleClean}</strong> on <strong>${currentDomain}</strong>.`,
             `Explore the complete cast list, ratings, and reviews for <strong>${titleClean}</strong> right here at <strong>${currentDomain}</strong>.`,
             `Your ultimate guide to <strong>${titleClean}</strong>. Dive into the plot and exclusive details provided by <strong>${currentDomain}</strong>.`
         ];
         const randomSeoText = seoVariations[Math.floor(Math.random() * seoVariations.length)];
         
-        // [EN] Inject random SEO text without the legal disclaimer
-        const seoText = `<br><br>${randomSeoText}`;
+        // [EN] Inject random SEO text
+        const seoText = `<br><br><span style="color:#888; font-size:0.9rem;">${randomSeoText}</span>`;
 
         const set = (id, v, isHTML = false) => { const el = document.getElementById(id); if (el) isHTML ? el.innerHTML = v : el.innerText = v; };
 
@@ -742,29 +742,19 @@ async function fetchMovieDetails(type, id) {
         if (g && d.genres) g.innerHTML = d.genres.map(x => `<span class="genre-tag">${sanitizeHTML(x.name)}</span>`).join('');
 
         // =====================================================================
-        // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (SMART DEEP-LINKING)
+        // [EN] UPDATE DYNAMIC WATCH FULL BUTTON URL (ALWAYS DYNAMIC)
         // =====================================================================
         const watchFullBtn = document.getElementById('watch-full-btn');
         if (watchFullBtn) {
-            // 1. Cek dulu di search_index.json apakah file statis sudah ada
-            const localFile = LOCAL_SEARCH_INDEX.find(x => x.id == id && x.type == type);
-            
-            if (localFile) {
-                // [SKENARIO 1] File statis SUDAH dibuat -> arahkan ke folder movies/tvshows
-                watchFullBtn.href = `https://xudomovie.us/${localFile.folder}/${localFile.slug}.html`;
-            } else {
-                // [SKENARIO 2] File statis BELUM dibuat -> arahkan ke watch.html (dynamic)
-                watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}`;
-            }
-            
-            // 2. Set target to _blank for a better user experience
+            // Directly route to the XUDOMovie dynamic page
+            watchFullBtn.href = `https://xudomovie.us/watch.html?type=${type}&id=${id}&lang=${CURRENT_LANG}`;
             watchFullBtn.target = "_blank";
         }
-
-            } catch (error) { 
-                console.error("[EN] Fetch Movie Details Error:", error); 
-            }
-        }
+        
+    } catch (error) { 
+        console.error("[EN] Fetch Movie Details Error:", error); 
+    }
+}
 
 /**
  * [EN] Fetches cast list and creates horizontal scrolling profile cards.
